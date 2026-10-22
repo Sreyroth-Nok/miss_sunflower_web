@@ -287,6 +287,73 @@ export default function ProductMarquee() {
       className="relative overflow-hidden"
       style={{ background: '#FFF9EC', ['--h' as string]: STAGE_H }}
     >
+      {/* ── Section title ─────────────────────────────────────────────── */}
+      <div
+        className="relative px-6 pt-20 pb-12 lg:pt-28 lg:pb-16 text-center"
+        style={{ background: 'linear-gradient(180deg, #FFF9EC 0%, #FBF0D8 55%, #F6E3BC 100%)' }}
+      >
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.7 }}
+          className="text-xs tracking-[0.3em] uppercase mb-4"
+          style={{ fontFamily: 'DM Sans, sans-serif', color: '#C99A25' }}
+        >
+          Our Product
+        </motion.p>
+        <h2
+          style={{
+            fontFamily: 'Cormorant Garamond, serif',
+            fontSize: 'clamp(2.6rem, 6vw, 5rem)',
+            fontWeight: 600,
+            color: '#332719',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.05,
+          }}
+        >
+          {['Miss Sunflower', 'Sun Serum'].map((line, i) => (
+            <span key={line} className="block overflow-hidden" style={{ paddingBottom: '0.06em' }}>
+              <motion.span
+                className="inline-block"
+                initial={{ y: '105%', opacity: 0 }}
+                whileInView={{ y: '0%', opacity: 1 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.9, delay: 0.1 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                style={i ? { color: '#C99A25', fontStyle: 'italic' } : undefined}
+              >
+                {line}
+              </motion.span>
+            </span>
+          ))}
+        </h2>
+        <motion.div
+          aria-hidden
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.9, delay: 0.35 }}
+          className="mx-auto mt-6 h-px w-24"
+          style={{ background: 'linear-gradient(90deg, transparent, #C99A25, transparent)' }}
+        />
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.8, delay: 0.45 }}
+          className="mx-auto mt-6"
+          style={{
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: 'clamp(0.9rem, 1.3vw, 1.05rem)',
+            lineHeight: 1.75,
+            color: '#5A4530',
+            maxWidth: '46ch',
+          }}
+        >
+          SPF 50+ PA++++ in a featherlight serum — protection, hydration and a golden glow in one daily step.
+        </motion.p>
+      </div>
+
       {/* ── Stage ─────────────────────────────────────────────────────── */}
       <div
         ref={stageRef}

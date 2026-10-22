@@ -7,20 +7,20 @@ import GlowSection from '@/components/GlowSection';
 import StorySection from '@/components/StorySection';
 import IngredientsSection from '@/components/IngredientsSection';
 import Footer from '@/components/Footer';
+import SectionReveal from '@/components/SectionReveal';
 
 export default function Home() {
   return (
     <main className="relative overflow-x-clip">
       <ScrollProgressBar />
       <Navigation />
-      <HeroSection />
-      <ProductMarquee />
-      <ProductShowcase />
-      <GlowSection />
-      <StorySection />
-      <IngredientsSection />
-      <Footer />
+      <SectionReveal mode="exit"><HeroSection /></SectionReveal>
+      <SectionReveal><ProductMarquee /></SectionReveal>
+      <SectionReveal><ProductShowcase /></SectionReveal>
+      <SectionReveal><GlowSection /></SectionReveal>
+      <SectionReveal><StorySection /></SectionReveal>
+      <SectionReveal><IngredientsSection /></SectionReveal>
+      <SectionReveal><Footer /></SectionReveal>
     </main>
   );
 }
-
