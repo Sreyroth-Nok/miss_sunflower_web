@@ -107,11 +107,31 @@ export default function HeroSection() {
 
     let W = section.clientWidth;
     let H = section.clientHeight;
+    let sc = 1;
+
+    // Element sizes only change with the viewport — set them on resize, never per frame
+    const applySizes = () => {
+      sc = Math.max(0.55, Math.min(1.15, W / 1440));
+      HEADS.forEach((h, i) => {
+        const el = headRefs.current[i];
+        if (el) el.style.width = el.style.height = `${(h.size * sc).toFixed(0)}px`;
+      });
+      FLYERS.forEach((f, i) => {
+        const el = flyerRefs.current[i];
+        if (el) el.style.width = el.style.height = `${(f.size * sc * 1.3).toFixed(0)}px`;
+      });
+    };
+    applySizes();
     const ro = new ResizeObserver(() => {
       W = section.clientWidth;
       H = section.clientHeight;
+      applySizes();
     });
     ro.observe(section);
+
+    // Last written z-index / blur per flyer, so they are only touched when they change
+    const lastZ: number[] = [];
+    const lastBlur: number[] = [];
 
     // Mouse target + smoothed value (lerp inside RAF)
     let tx = 0, ty = 0, mx = 0, my = 0;
@@ -133,7 +153,6 @@ export default function HeroSection() {
       mx += (tx - mx) * 0.04;
       my += (ty - my) * 0.04;
       const sy = window.scrollY;
-      const sc = Math.max(0.55, Math.min(1.15, W / 1440));
       const cx = W * 0.5;
       const cy = H * 0.45;
 
@@ -206,7 +225,6 @@ export default function HeroSection() {
         const rx3 = Math.sin(t * w * 0.7 + i) * h.tilt;
         const ry3 = Math.cos(t * w * 0.5 + i * 2) * h.tilt;
         const rz  = Math.sin(t * 0.25 + i) * 8 + h.base * 20;
-        el.style.width = el.style.height = `${size.toFixed(0)}px`;
         el.style.transform =
           `translate3d(${(x - size / 2).toFixed(1)}px, ${(y - size / 2).toFixed(1)}px, 0) ` +
           `perspective(700px) rotateX(${rx3.toFixed(1)}deg) rotateY(${ry3.toFixed(1)}deg) rotateZ(${rz.toFixed(1)}deg)`;
@@ -233,10 +251,11 @@ export default function HeroSection() {
         const depthScale = 0.72 + (z + 1) * 0.22;      // 0.72 … 1.16
         const pm = 0.01 + (z + 1) * 0.02;
         const size = f.size * sc * 1.3;
-        el.style.zIndex = String(z > 0 ? BOTTLE_Z + 10 : BOTTLE_Z - 10);
+        const zi = z > 0 ? BOTTLE_Z + 10 : BOTTLE_Z - 10;
+        if (lastZ[i] !== zi) { el.style.zIndex = String(zi); lastZ[i] = zi; }
+        const blur = z < -0.3 ? Math.round((-z - 0.3) * 2.2 * 2) / 2 : 0;   // 0.5px steps
+        if (lastBlur[i] !== blur) { el.style.filter = blur ? `blur(${blur}px)` : 'none'; lastBlur[i] = blur; }
         el.style.opacity = (0.55 + (z + 1) * 0.22).toFixed(3);
-        el.style.filter = z < -0.3 ? `blur(${((-z - 0.3) * 2.2).toFixed(2)}px)` : 'none';
-        el.style.width = el.style.height = `${size.toFixed(0)}px`;
         el.style.transform =
           `translate3d(${(x - size / 2 + mx * pm).toFixed(1)}px, ${(y - size / 2 + my * pm + sy * pm * 6).toFixed(1)}px, 0) ` +
           `perspective(500px) scale(${depthScale.toFixed(3)}) rotateZ(${(a * 57.3 * 0.6).toFixed(1)}deg) ` +

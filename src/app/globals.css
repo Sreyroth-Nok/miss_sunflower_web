@@ -22,8 +22,11 @@
   }
 }
 
-html {
+html:not(.lenis) {
   scroll-behavior: smooth;
+}
+
+html {
   overflow-x: clip;
 }
 

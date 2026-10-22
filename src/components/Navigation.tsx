@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { scrollToSection } from '@/lib/scroll';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 
@@ -24,8 +25,7 @@ export default function Navigation() {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    scrollToSection(href);
     setMenuOpen(false);
   };
 

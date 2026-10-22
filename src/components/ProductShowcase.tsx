@@ -100,11 +100,35 @@ export default function ProductShowcase() {
 
     let W = stage.clientWidth;
     let H = stage.clientHeight;
+    let S = 400;                 // tube image box
+    const tilt = 0.32;           // orbit ellipse squash
+
+    // Sizes only change with the viewport — set them on resize, never per frame.
+    // The orbit ring is sized once and grown/shrunk with transform: scale().
+    const applySizes = () => {
+      S = Math.min(H * 0.78, W * (W < 768 ? 0.95 : 0.6));
+      if (tubeRef.current) tubeRef.current.style.width = tubeRef.current.style.height = `${S.toFixed(0)}px`;
+      if (ringRef.current) {
+        ringRef.current.style.width = `${S.toFixed(0)}px`;
+        ringRef.current.style.height = `${(S * tilt).toFixed(0)}px`;
+      }
+      PETALS.forEach((pt, i) => {
+        const el = petalRefs.current[i];
+        if (el) el.style.width = el.style.height = `${(pt.size * S).toFixed(0)}px`;
+      });
+    };
+    applySizes();
     const ro = new ResizeObserver(() => {
       W = stage.clientWidth;
       H = stage.clientHeight;
+      applySizes();
     });
     ro.observe(stage);
+
+    // Last written values, so z-index / filters are only touched when they change
+    const lastZ: number[] = [];
+    const lastBlur: number[] = [];
+    const lastWordBlur: string[] = [];
 
     // The film starts from frame 0 the first time the section is seen,
     // and pauses (keeping its place) whenever it is off-screen
@@ -119,7 +143,6 @@ export default function ProductShowcase() {
     // tl: time within the loop · t: total time (continuous ambient motion)
     const render = (tl: number, t: number) => {
       const mobile = W < 768;
-      const S = Math.min(H * 0.78, W * (mobile ? 0.95 : 0.6));   // tube image box
 
       const enter  = easeOut(seg(tl, T.enter));
       const gather = easeOut(seg(tl, T.gather));
@@ -158,13 +181,13 @@ export default function ProductShowcase() {
         easeInOut(seg(tl, T.exit)) * 10 +         // straightens as it rises
         Math.sin(t * 0.6) * 1.5;
       if (tubeRef.current) {
-        tubeRef.current.style.width = tubeRef.current.style.height = `${S.toFixed(0)}px`;
         tubeRef.current.style.transform =
           `translate3d(${(cx - S / 2).toFixed(1)}px, ${(cy - S / 2).toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
       }
       if (sweepRef.current) {
-        const pos = ((t * 0.2) % 1.7) - 0.35;
-        sweepRef.current.style.backgroundPosition = `${(pos * 100).toFixed(1)}% 0, ${(100 - pos * 80).toFixed(1)}% 0`;
+        // Glint band slides across via transform (no per-frame repaint of the masked layer)
+        const pos = ((t * 0.2) % 1.7) - 0.85;          // -0.85 … 0.85 of the tube width
+        sweepRef.current.style.transform = `translate3d(${(pos * 100).toFixed(1)}%, 0, 0)`;
         sweepRef.current.style.opacity = (0.4 + 0.6 * gold).toFixed(3);
       }
 
@@ -181,7 +204,6 @@ export default function ProductShowcase() {
 
       // ── Orbit: ring, dust, petals ───────────────────────────────────
       const R = S * 0.5 * lerp(2.2, 1, gather);
-      const tilt = 0.32;
       const ringRot = (-16 + shift * -8) * Math.PI / 180;
       const cr = Math.cos(ringRot), sr = Math.sin(ringRot);
       const spin = t * 0.5;
@@ -189,10 +211,9 @@ export default function ProductShowcase() {
 
       if (ringRef.current) {
         ringRef.current.style.opacity = (orbitOp * gold * 0.85 * (1 - exit)).toFixed(3);
-        ringRef.current.style.width = `${(R * 2).toFixed(0)}px`;
-        ringRef.current.style.height = `${(R * 2 * tilt).toFixed(0)}px`;
         ringRef.current.style.transform =
-          `translate3d(${(cx - R).toFixed(1)}px, ${(cy - R * tilt).toFixed(1)}px, 0) rotate(${(ringRot * 57.3).toFixed(2)}deg)`;
+          `translate3d(${(cx - S / 2).toFixed(1)}px, ${(cy - (S * tilt) / 2).toFixed(1)}px, 0) ` +
+          `rotate(${(ringRot * 57.3).toFixed(2)}deg) scale(${(R / (S * 0.5)).toFixed(4)})`;
       }
       DUST.forEach((d, i) => {
         const el = dustRefs.current[i];
@@ -217,10 +238,11 @@ export default function ProductShowcase() {
         const y = cy + ox * sr + oy * cr + exit * H * (0.15 + pt.lag * 0.45);
         const size = pt.size * S;
         const depth = 0.72 + (z + 1) * 0.22;
-        el.style.width = el.style.height = `${size.toFixed(0)}px`;
-        el.style.zIndex = z > 0 ? '12' : '8';
+        const zi = z > 0 ? 12 : 8;
+        if (lastZ[i] !== zi) { el.style.zIndex = String(zi); lastZ[i] = zi; }
+        const blur = z < -0.4 ? Math.round((-z - 0.4) * 2 * 2) / 2 : 0;   // 0.5px steps
+        if (lastBlur[i] !== blur) { el.style.filter = blur ? `blur(${blur}px)` : 'none'; lastBlur[i] = blur; }
         el.style.opacity = (orbitOp * (0.65 + (z + 1) * 0.17)).toFixed(3);
-        el.style.filter = z < -0.4 ? `blur(${((-z - 0.4) * 2).toFixed(2)}px)` : 'none';
         el.style.transform =
           `translate3d(${(x - size / 2).toFixed(1)}px, ${(y - size / 2).toFixed(1)}px, 0) perspective(500px) ` +
           `scale(${depth.toFixed(3)}) rotateZ(${((a * 57.3 + 90) % 360).toFixed(1)}deg) ` +
@@ -246,7 +268,8 @@ export default function ProductShowcase() {
         const v = easeOut(seg(tl, [a + i * 0.25, b + i * 0.25]));
         el.style.opacity = v.toFixed(3);
         el.style.transform = `translate3d(0, ${((1 - v) * 105).toFixed(1)}%, 0)`;
-        el.style.filter = `blur(${((1 - v) * 6).toFixed(2)}px)`;
+        const wb = v >= 1 ? 'none' : `blur(${((1 - v) * 6).toFixed(1)}px)`;
+        if (lastWordBlur[i] !== wb) { el.style.filter = wb; lastWordBlur[i] = wb; }
       });
       if (subRef.current) {
         const v = easeOut(seg(tl, T.sub));
@@ -430,15 +453,9 @@ export default function ProductShowcase() {
         </div>
         {/* Golden shimmer gliding across the tube, masked to its silhouette */}
         <div
-          ref={sweepRef}
           aria-hidden
-          className="absolute inset-0"
+          className="absolute inset-0 overflow-hidden"
           style={{
-            backgroundImage:
-              'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.75) 48%, rgba(255,246,200,0.2) 52%, transparent 60%),' +
-              'linear-gradient(75deg, transparent 44%, rgba(255,250,220,0.45) 50%, transparent 56%)',
-            backgroundSize: '250% 100%, 300% 100%',
-            backgroundRepeat: 'no-repeat',
             WebkitMaskImage: `url(${IMG.tube})`,
             maskImage: `url(${IMG.tube})`,
             WebkitMaskSize: 'contain',
@@ -449,7 +466,17 @@ export default function ProductShowcase() {
             maskPosition: 'center',
             mixBlendMode: 'screen',
           }}
-        />
+        >
+          <div
+            ref={sweepRef}
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.75) 48%, rgba(255,246,200,0.2) 53%, transparent 62%)',
+              willChange: 'transform, opacity',
+            }}
+          />
+        </div>
       </div>
 
       {/* Orbiting petals (z-index swaps in front of / behind the tube) */}

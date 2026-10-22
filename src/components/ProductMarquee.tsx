@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
+import { scrollToSection } from '@/lib/scroll';
 
 // ─── Assets (all transparent PNGs in /public/images/products) ───────────────
 const IMG = {
@@ -85,11 +86,20 @@ export default function ProductMarquee() {
     let H = stage.clientHeight;
     let glowUnit = glowRowRef.current?.firstElementChild instanceof HTMLElement
       ? glowRowRef.current.firstElementChild.offsetWidth : 0;
+    // Floater sizes only change with the stage — set them on resize, never per frame
+    const applySizes = () => {
+      FLOATERS.forEach((f, i) => {
+        const el = floatRefs.current[i];
+        if (el) el.style.width = el.style.height = `${(f.size * H).toFixed(0)}px`;
+      });
+    };
+    applySizes();
     const ro = new ResizeObserver(() => {
       W = stage.clientWidth;
       H = stage.clientHeight;
       const first = glowRowRef.current?.firstElementChild;
       glowUnit = first instanceof HTMLElement ? first.offsetWidth : 0;
+      applySizes();
     });
     ro.observe(stage);
 
@@ -130,7 +140,6 @@ export default function ProductMarquee() {
         const rz = f.flip ? Math.sin(t * 0.4 + f.ph) * 35 + f.ph * 60 : t * 4;
         const ry = f.flip ? t * f.flip + f.ph * 50 : 0;
         const rx = f.flip ? Math.sin(t * 0.7 + f.ph) * 30 : 0;
-        el.style.width = el.style.height = `${size.toFixed(0)}px`;
         el.style.transform =
           `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) perspective(500px) ` +
           `rotateZ(${rz.toFixed(1)}deg) rotateY(${ry.toFixed(1)}deg) rotateX(${rx.toFixed(1)}deg)`;
@@ -492,7 +501,7 @@ export default function ProductMarquee() {
           href="#product-detail"
           onClick={e => {
             e.preventDefault();
-            document.querySelector('#product-detail')?.scrollIntoView({ behavior: 'smooth' });
+            scrollToSection('#product-detail');
           }}
           className="transition-transform duration-300 hover:scale-105"
           style={{

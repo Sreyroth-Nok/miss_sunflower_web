@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
+import { scrollToSection } from '@/lib/scroll';
 
 const STATS = [
   { value: 'SPF 50+', label: 'Sun Protection Factor' },
@@ -175,7 +176,7 @@ export default function GlowSection() {
               href="#product"
               onClick={(e) => {
                 e.preventDefault();
-                document.querySelector('#product')?.scrollIntoView({ behavior: 'smooth' });
+                scrollToSection('#product');
               }}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
