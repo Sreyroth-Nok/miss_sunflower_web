@@ -12,9 +12,9 @@ const FOOTER_LINKS = {
 function IconInstagram() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-      <circle cx="12" cy="12" r="4"/>
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -22,8 +22,8 @@ function IconInstagram() {
 function IconYoutube() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
-      <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+      <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -31,8 +31,8 @@ function IconYoutube() {
 function IconMail() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2"/>
-      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
   );
 }
@@ -45,14 +45,20 @@ const SOCIAL = [
 
 export default function Footer() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const yearRef = useRef<HTMLSpanElement>(null);
   const reduceMotion = useReducedMotion();
 
   // Only play the background video while it is on screen
+  // The year is read in the browser: Cache Components forbids reading the clock during prerender
+  useEffect(() => {
+    if (yearRef.current) yearRef.current.textContent = String(new Date().getFullYear());
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || reduceMotion) return;
     const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) video.play().catch(() => {});
+      if (entry.isIntersecting) video.play().catch(() => { });
       else video.pause();
     }, { threshold: 0.1 });
     io.observe(video);
@@ -255,17 +261,18 @@ export default function Footer() {
               letterSpacing: '0.05em',
             }}
           >
-            © {new Date().getFullYear()} Miss Sunflower. All rights reserved.
+            © <span ref={yearRef} /> Miss Sunflower. All rights reserved.
           </p>
+
           <p
             style={{
               fontFamily: 'DM Sans, sans-serif',
               fontSize: '0.72rem',
-              color: 'rgba(255,249,236,0.25)',
+              color: 'rgba(255, 254, 251, 0.96)',
               letterSpacing: '0.05em',
             }}
           >
-            Crafted with ☀ and golden light
+            Developed by Zzzroth lvu
           </p>
         </div>
       </div>

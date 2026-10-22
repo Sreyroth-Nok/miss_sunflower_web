@@ -102,7 +102,7 @@ export default function IngredientsSection() {
           >
             Crafted with
             <br />
-            <em style={{ color: '#C99A25' }}>nature's finest.</em>
+            <em style={{ color: '#C99A25' }}>nature&apos;s finest.</em>
           </h2>
         </motion.div>
 
